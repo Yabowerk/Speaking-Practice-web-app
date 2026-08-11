@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Play, History, Settings, Shuffle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const TOPICS = [
   "How has technology changed the way we learn and grow?",
@@ -10,11 +11,14 @@ const TOPICS = [
 ];
 
 export default function Home({
-  onStartRecording = () => {},
+  onStartRecording = () => {
+    navigate("/recording");
+  },
   onOpenHistory = () => {},
   onOpenSettings = () => {},
 }) {
   const [topic, setTopic] = useState(TOPICS[0]);
+  const navigate = useNavigate();
 
   const handleSurpriseMe = () => {
     let next = topic;

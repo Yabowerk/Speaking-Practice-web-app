@@ -11,6 +11,7 @@ export default function Recording({
   onStop = (seconds, blob, url) => { },
   onDiscard = () => { },
 }) {
+  const url = import.meta.env.VITE_API_URL;
   const { LoadingState, setServerdata } = useContext(AppContext);
   const navigate = useNavigate();
   const location = useLocation();
@@ -52,7 +53,7 @@ export default function Recording({
     const token = data.session?.access_token;
 
     // Fixed: Backticks used for dynamic URL string template
-    const response = await fetch(`http://localhost:3000/session/${i18n.language}`, {
+    const response = await fetch(`${url}/session/${i18n.language}`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,

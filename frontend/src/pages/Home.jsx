@@ -17,6 +17,7 @@ export default function Home({
   onOpenSettings = () => { },
 }) {
   const navigate = useNavigate();
+  const url = import.meta.env.VITE_API_URL;
   const { t, i18n } = useTranslation();
   const [topics, setTopics] = useState(() => {
     const saved = localStorage.getItem("practice_topics");
@@ -62,7 +63,7 @@ export default function Home({
         exclude.push(currentActiveTopic);
       }
 
-      const res = await fetch(`http://localhost:3000/api/${i18n.language}/topics`, {
+      const res = await fetch(`${url}/api/${i18n.language}/topics`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -59,6 +59,7 @@ export default function History() {
   const [olderSessions, setOlderSessions] = useState([]);
   const [showOlder, setShowOlder] = useState(false);
   const { t, i18n } = useTranslation();
+  const url = import.meta.env.VITE_API_URL;
   useEffect(() => {
     console.log(i18n.language);
   }, []);
@@ -75,7 +76,7 @@ export default function History() {
           return;
         }
 
-        const response = await fetch(`http://localhost:3000/sessions/${i18n.language}`, {
+        const response = await fetch(`${url}/sessions/${i18n.language}`, {
           headers: {
             "Authorization": `Bearer ${token}`
           }

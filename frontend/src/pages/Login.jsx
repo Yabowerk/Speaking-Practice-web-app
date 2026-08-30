@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function Login({
   onSignIn,
@@ -10,6 +11,7 @@ export default function Login({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const { t } = useTranslation();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -26,16 +28,14 @@ export default function Login({
           className="flex-1 px-6 pt-10 sm:pt-12 pb-8 flex flex-col"
         >
           <h1 className="font-serif text-4xl sm:text-[2.75rem] leading-[1.05] text-[#241416] tracking-tight">
-            Speaking
-            <br />
-            Practice
+            {t("Speaking Practice")}
           </h1>
 
           <h2 className="mt-8 font-serif text-2xl text-[#241416]">
-            Welcome Back
+            {t("Welcome Back")}
           </h2>
           <p className="mt-1 text-sm text-[#6B5F5C]">
-            Sign in to continue your journey.
+            {t("Sign in to continue your journey.")}
           </p>
 
           <MiniWaveform className="mt-5 text-[#8C2E3B]" />
@@ -50,7 +50,7 @@ export default function Login({
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email Address"
+                placeholder={t("Email Address")}
                 className="flex-1 bg-transparent text-sm text-[#241416] placeholder:text-[#9B8F86] outline-none"
               />
             </div>
@@ -66,7 +66,7 @@ export default function Login({
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
+                placeholder={t("Password")}
                 className="flex-1 bg-transparent text-sm text-[#241416] placeholder:text-[#9B8F86] outline-none"
               />
               <button
@@ -95,7 +95,7 @@ export default function Login({
             type="submit"
             className="mt-6 inline-flex items-center justify-center rounded-full bg-[#7A2331] py-3.5 text-sm font-semibold text-[#F6F1E7] shadow-sm transition-colors hover:bg-[#6A1E2A] active:scale-[0.98]"
           >
-            Sign In
+            {t("Sign In")}
           </button>
 
           <button
@@ -103,17 +103,17 @@ export default function Login({
             onClick={onSignIn}
             className="mt-4 text-center text-sm text-[#9B8F86] transition-colors hover:text-[#6B5F5C]"
           >
-            Forgot Password?
+            {t("Forgot Password?")}
           </button>
 
           <p className="mt-auto pt-10 text-center text-sm text-[#6B5F5C]">
-            Don&apos;t have an account?{" "}
+            {t("Don't have an account?")}{" "}
             <button
               type="button"
               onClick={onGoToSignUp}
               className="font-semibold text-[#7A2331] underline underline-offset-2 hover:text-[#6A1E2A]"
             >
-              Sign Up
+              {t("Sign Up")}
             </button>
           </p>
         </form>

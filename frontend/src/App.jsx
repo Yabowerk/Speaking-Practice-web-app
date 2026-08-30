@@ -5,8 +5,10 @@ import Home from "./pages/Home";
 import Recording from "./pages/Recording";
 import Results from "./pages/Results";
 import History from "./pages/History";
+import Settings from "./pages/Settings";
 import Auth from "./Components/Auth";
 import supabase from "./lib/supabase";
+import PracticePage from "./pages/Pagepractice";
 
 const ProtectedRoute = ({ session, children }) => {
   if (!session) {
@@ -31,24 +33,41 @@ function App() {
 
     return () => subscription.unsubscribe();
   }, []);
+  const sessionx = true;
 
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/Recording" element={
+
+        <Route path="/p" element={
+
+          <PracticePage />
+
+        } />
+        <Route path="/" element={
           <ProtectedRoute session={session}>
+            <Home />
+          </ProtectedRoute>
+
+        } />
+        <Route path="/recording" element={
+          <ProtectedRoute session={sessionx}>
             <Recording />
           </ProtectedRoute>
         } />
-        <Route path="/Results" element={
-          <ProtectedRoute session={session}>
+        <Route path="/results" element={
+          <ProtectedRoute session={sessionx}>
             <Results />
           </ProtectedRoute>
         } />
         <Route path="/history" element={
-          <ProtectedRoute session={session}>
+          <ProtectedRoute session={sessionx}>
             <History />
+          </ProtectedRoute>
+        } />
+        <Route path="/settings" element={
+          <ProtectedRoute session={sessionx}>
+            <Settings />
           </ProtectedRoute>
         } />
         <Route path="/auth" element={

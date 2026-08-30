@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { User, Mail, Lock, ShieldCheck, Eye, EyeOff } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function SignUp({
   onCreateAccount = () => {},
@@ -15,6 +16,7 @@ export default function SignUp({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
+  const { t } = useTranslation();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -34,14 +36,12 @@ export default function SignUp({
           className="flex-1 px-6 pt-10 sm:pt-12 pb-8 flex flex-col"
         >
           <h1 className="font-serif text-4xl sm:text-[2.75rem] leading-[1.05] text-[#241416] tracking-tight">
-            Speaking
-            <br />
-            Practice
+            {t("Speaking Practice")}
           </h1>
 
-          <h2 className="mt-8 font-serif text-2xl text-[#241416]">Join Us</h2>
+          <h2 className="mt-8 font-serif text-2xl text-[#241416]">{t("Join us to start practicing.")}</h2>
           <p className="mt-1 text-sm text-[#6B5F5C]">
-            Create an account to start practicing.
+            {t("Create Account")}
           </p>
 
           {/* Full Name */}
@@ -54,7 +54,7 @@ export default function SignUp({
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Full Name"
+                placeholder={t("Full Name")}
                 className="flex-1 bg-transparent text-sm text-[#241416] placeholder:text-[#9B8F86] outline-none"
               />
             </div>
@@ -70,7 +70,7 @@ export default function SignUp({
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email Address"
+                placeholder={t("Email Address")}
                 className="flex-1 bg-transparent text-sm text-[#241416] placeholder:text-[#9B8F86] outline-none"
               />
             </div>
@@ -87,7 +87,7 @@ export default function SignUp({
                 minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Create Password"
+                placeholder={t("Password")}
                 className="flex-1 bg-transparent text-sm text-[#241416] placeholder:text-[#9B8F86] outline-none"
               />
               <button
@@ -115,7 +115,7 @@ export default function SignUp({
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm Password"
+                placeholder={t("Password")}
                 className="flex-1 bg-transparent text-sm text-[#241416] placeholder:text-[#9B8F86] outline-none"
               />
               <button
@@ -150,7 +150,7 @@ export default function SignUp({
             type="submit"
             className="mt-6 inline-flex items-center justify-center rounded-full bg-[#7A2331] py-3.5 text-sm font-semibold text-[#F6F1E7] shadow-sm transition-colors hover:bg-[#6A1E2A] active:scale-[0.98]"
           >
-            Create Account
+            {t("Create Account")}
           </button>
 
           <p className="mt-4 text-center text-xs leading-relaxed text-[#9B8F86]">
@@ -172,13 +172,13 @@ export default function SignUp({
           </p>
 
           <p className="mt-auto pt-8 text-center text-sm text-[#6B5F5C]">
-            Already have an account?{" "}
+            {t("Already have an account?")}{" "}
             <button
               type="button"
               onClick={onGoToSignIn}
               className="font-semibold text-[#7A2331] underline underline-offset-2 hover:text-[#6A1E2A]"
             >
-              Sign In
+              {t("Sign In")}
             </button>
           </p>
         </form>

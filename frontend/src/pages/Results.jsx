@@ -1,5 +1,13 @@
-import React, { useState } from "react";
-import { ChevronLeft, MoreHorizontal, Play, CloudOff } from "lucide-react";
+import React, { useState, useEffect, useContext, useRef } from "react";
+import { ChevronLeft, MoreHorizontal, Play, CloudOff, Pause } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { AppContext } from "../context/AppContext";
+import { AudioPlayer } from "../Components/AudioPlayer";
+import { useTranslation } from "react-i18next";
+
+
+
+
 
 const DEFAULT_RESULT = {
   date: "May 12, 2025",
@@ -24,27 +32,62 @@ const DEFAULT_RESULT = {
   tip: "Great insights! Try pausing briefly before key points to reduce fillers like \"um\" and \"you know.\"",
 };
 
+
+const FILLER_WORDS = ["um", "uh", "like", "you know", "so", "actually"];
+
+function buildTranscriptChunks(text) {
+  if (!text) return [];
+
+  const pattern = new RegExp(`\\b(${FILLER_WORDS.join("|")})\\b`, "gi");
+  const parts = text.split(pattern);
+
+  return parts
+    .filter((part) => part !== "")
+    .map((part) => {
+      const isFiller = FILLER_WORDS.some(
+        (f) => f.toLowerCase() === part.toLowerCase()
+      );
+      return { text: part, filler: isFiller };
+    });
+}
+
+
+
+
 export default function Results({
   status = "populated", // 'loading' | 'error' | 'populated'
   result = DEFAULT_RESULT,
-  onBack = () => {},
-  onRetry = () => {},
-  onNewSession = () => {},
+  onBack,
+  onRetry = () => { },
+  onNewSession = () => { },
 }) {
+  const navigate = useNavigate();
+  const handleBack = onBack || (() => {
+    navigate("/history");
+  });
+
+  const { serverdata, setServerdata } = useContext(AppContext);
+  useEffect((
+  ) => { console.log(serverdata); },
+    []);
+
+  const { t } = useTranslation();
+
   return (
+
     <div className="min-h-screen w-full bg-[#F6F1E7] flex items-center justify-center p-4 sm:p-8">
       <div className="w-full max-w-sm sm:max-w-md flex flex-col rounded-[2rem] bg-[#F6F1E7] sm:shadow-xl sm:ring-1 sm:ring-black/5 overflow-hidden min-h-[600px] sm:min-h-[640px]">
         {/* Top bar */}
         <div className="flex items-center justify-between px-5 pt-6 pb-4">
           <button
             type="button"
-            onClick={onBack}
+            onClick={handleBack}
             className="flex h-8 w-8 items-center justify-center rounded-full text-[#241416] transition-colors hover:bg-black/5"
             aria-label="Go back"
           >
             <ChevronLeft className="h-5 w-5" strokeWidth={2} />
           </button>
-          <h1 className="font-serif text-lg text-[#241416]">Results</h1>
+          <h1 className="font-serif text-lg text-[#241416]">{t("Results")}</h1>
           {status === "populated" ? (
             <button
               type="button"
@@ -62,7 +105,7 @@ export default function Results({
           {status === "loading" && <LoadingState />}
           {status === "error" && <ErrorState onRetry={onRetry} />}
           {status === "populated" && (
-            <PopulatedState result={result} onNewSession={onNewSession} />
+            <PopulatedState serverdata={serverdata} onNewSession={onNewSession} />
           )}
         </div>
       </div>
@@ -70,81 +113,82 @@ export default function Results({
   );
 }
 
-function LoadingState() {
-  return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-5 rounded-2xl bg-white/70 border border-[#E7DDD0] py-16 px-6 text-center">
-      <span className="h-9 w-9 rounded-full border-[3px] border-[#E7DDD0] border-t-[#7A2331] animate-spin" />
-      <p className="text-sm text-[#6B5F5C] leading-relaxed">
-        Transcribing your session.
-        <br />
-        This can take up to 30 seconds.
-      </p>
-    </div>
-  );
-}
+
 
 function ErrorState({ onRetry }) {
+  const { t } = useTranslation();
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-5 rounded-2xl bg-white/70 border border-[#E7DDD0] py-16 px-6 text-center">
       <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#FBEDEE] text-[#8C2E3B]">
         <CloudOff className="h-5 w-5" strokeWidth={1.75} />
       </span>
       <p className="text-sm text-[#6B5F5C] leading-relaxed">
-        We couldn&apos;t load your results
+        {t("We couldn't load your results")}
         <br />
-        right now. Let&apos;s try again.
+        {t("right now. Let's try again.")}
       </p>
       <button
         type="button"
         onClick={onRetry}
         className="rounded-full bg-[#7A2331] px-8 py-3 text-sm font-semibold text-[#F6F1E7] shadow-sm transition-colors hover:bg-[#6A1E2A] active:scale-[0.98]"
       >
-        Retry
+        {t("Retry")}
       </button>
     </div>
   );
 }
 
-function PopulatedState({ result, onNewSession }) {
+function PopulatedState({ serverdata, onNewSession }) {
+  const navigate = useNavigate();
+  const transcriptChunks = buildTranscriptChunks(serverdata.transcript);
+  function newsession() {
+    navigate("/recording");
+  }
+
+  function newsession() {
+    navigate("/recording");
+  }
+  const { t } = useTranslation();
+
   return (
     <div className="flex-1 flex flex-col">
       <div className="rounded-2xl bg-white/70 border border-[#E7DDD0] p-4 shadow-sm">
         {/* Session meta + play */}
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium text-[#241416]">
-            {result.date} &middot; {result.time}
+            {serverdata.date} &middot; {serverdata.time}
           </span>
         </div>
-        <div className="mt-3 flex items-center gap-3">
-          <button
-            type="button"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#7A2331] text-[#F6F1E7] transition-colors hover:bg-[#6A1E2A]"
-            aria-label="Play recording"
-          >
-            <Play className="h-3.5 w-3.5 fill-current ml-0.5" strokeWidth={0} />
-          </button>
-          <PlaybackWaveform className="flex-1 text-[#D9B8BD]" />
-          <span className="shrink-0 text-xs tabular-nums text-[#9B8F86]">
-            {result.duration}
-          </span>
-        </div>
+        {/* Topic */}
+        {serverdata.topic && (
+          <div className="mt-4">
+            <span className="text-[10px] font-semibold tracking-[0.12em] text-[#9B8F86] uppercase">
+              {t("Topic")}
+            </span>
+            <p className="mt-1.5 font-serif text-base leading-snug text-[#241416]">
+              {serverdata.topic}
+            </p>
+          </div>
+        )}
+
+        <AudioPlayer serverdata={serverdata} />
 
         {/* Stats */}
         <div className="mt-5 grid grid-cols-2 gap-3">
           <div className="rounded-xl bg-[#F6F1E7] px-4 py-3">
             <span className="text-[10px] font-semibold tracking-[0.12em] text-[#9B8F86] uppercase">
-              Filler Words
+              {t("Filler Words")}
             </span>
             <p className="mt-1 font-serif text-2xl text-[#241416]">
-              {result.fillerWords}
+              {serverdata.fillerWords}
             </p>
           </div>
           <div className="rounded-xl bg-[#F6F1E7] px-4 py-3">
             <span className="text-[10px] font-semibold tracking-[0.12em] text-[#9B8F86] uppercase">
-              Average WPM
+              {t("Average WPM")}
             </span>
             <p className="mt-1 font-serif text-2xl text-[#241416]">
-              {result.avgWpm}
+              {serverdata.avgWpm}
             </p>
           </div>
         </div>
@@ -152,10 +196,10 @@ function PopulatedState({ result, onNewSession }) {
         {/* Transcript */}
         <div className="mt-5">
           <span className="text-[10px] font-semibold tracking-[0.12em] text-[#9B8F86] uppercase">
-            Transcript
+            {t("Transcript")}
           </span>
           <p className="mt-2 text-sm leading-relaxed text-[#3A2E2C]">
-            {result.transcript.map((chunk, i) =>
+            {transcriptChunks.map((chunk, i) =>
               chunk.filler ? (
                 <mark
                   key={i}
@@ -173,37 +217,23 @@ function PopulatedState({ result, onNewSession }) {
         {/* Tip */}
         <div className="mt-4 rounded-xl bg-[#FBEDEE] border border-[#E3B9BE] px-4 py-3">
           <span className="text-[10px] font-semibold tracking-[0.12em] text-[#8C2E3B] uppercase">
-            Tip
+            {t("Tip")}
           </span>
           <p className="mt-1 text-sm leading-relaxed text-[#5C1D28]">
-            {result.tip}
+            {serverdata.ai || t("Nice work — keep practicing to smooth out your pacing.")}
           </p>
         </div>
       </div>
 
       <button
         type="button"
-        onClick={onNewSession}
+        onClick={newsession}
         className="mt-6 inline-flex items-center justify-center rounded-full bg-[#7A2331] py-3.5 text-sm font-semibold text-[#F6F1E7] shadow-sm transition-colors hover:bg-[#6A1E2A] active:scale-[0.98]"
       >
-        New Session
+        {t("New Session")}
       </button>
     </div>
   );
 }
 
-/** Static waveform used behind the playback scrubber. */
-function PlaybackWaveform({ className = "" }) {
-  const bars = [4, 8, 12, 6, 14, 9, 5, 11, 7, 13, 6, 10, 4, 8, 12, 6, 9, 5, 11, 7, 13, 8, 4, 10];
-  return (
-    <div className={`flex items-center gap-[2px] h-4 ${className}`} aria-hidden="true">
-      {bars.map((h, i) => (
-        <span
-          key={i}
-          className="w-[2px] rounded-full bg-current"
-          style={{ height: `${h}px`, opacity: i < 9 ? 1 : 0.45 }}
-        />
-      ))}
-    </div>
-  );
-}
+

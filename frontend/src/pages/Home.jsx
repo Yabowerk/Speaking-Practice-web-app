@@ -1,31 +1,120 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Play, History, Settings, Shuffle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const TOPICS = [
-  "How has technology changed the way we learn and grow?",
-  "What does 'home' mean to you?",
-  "Describe a risk that ended up paying off.",
-  "What's a skill you wish you'd learned earlier?",
-  "Talk about a place you'd love to revisit.",
+import supabase from "../lib/supabase";
+import { useTranslation } from "react-i18next";
+
+const FALLBACK_TOPICS = [
+  "Describe a decision you made recently that changed your perspective.",
+  "Explain a complex topic you understand well to a beginner.",
+  "What is a personal habit you want to build this year and why?",
 ];
 
 export default function Home({
-  onStartRecording = () => {
-    navigate("/recording");
-  },
-  onOpenHistory = () => {},
-  onOpenSettings = () => {},
+  onStartRecording,
+  onOpenHistory = () => { },
+  onOpenSettings = () => { },
 }) {
-  const [topic, setTopic] = useState(TOPICS[0]);
   const navigate = useNavigate();
-
-  const handleSurpriseMe = () => {
-    let next = topic;
-    while (next === topic && TOPICS.length > 1) {
-      next = TOPICS[Math.floor(Math.random() * TOPICS.length)];
+  const { t, i18n } = useTranslation();
+  const [topics, setTopics] = useState(() => {
+    const saved = localStorage.getItem("practice_topics");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {
+        console.error("Failed to parse practice_topics from localStorage", e);
+      }
     }
-    setTopic(next);
+    return FALLBACK_TOPICS.slice(1);
+  });
+
+  const [currentTopic, setCurrentTopic] = useState(() => {
+    const savedCurrent = localStorage.getItem("current_topic");
+    return savedCurrent || FALLBACK_TOPICS[0];
+  });
+
+  const [isLoading, setIsLoading] = useState(false);
+  const isFetchingRef = useRef(false); // guards against duplicate fetches
+
+  useEffect(() => {
+    localStorage.setItem("practice_topics", JSON.stringify(topics));
+  }, [topics]);
+
+  useEffect(() => {
+    localStorage.setItem("current_topic", currentTopic);
+  }, [currentTopic]);
+
+  const fetchNextBatch = async (currentTopicsList = topics, currentActiveTopic = currentTopic) => {
+    if (isFetchingRef.current) return; // already fetching, skip
+    isFetchingRef.current = true;
+    setIsLoading(true);
+
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+
+      // Pass the current topics to exclude to prevent duplicate generation
+      const exclude = [...currentTopicsList];
+      if (currentActiveTopic) {
+        exclude.push(currentActiveTopic);
+      }
+
+      const res = await fetch(`http://localhost:3000/api/${i18n.language}/topics`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ exclude }),
+      });
+      const result = await res.json();
+      console.log(result);
+
+      if (result.topics?.length) {
+        setTopics((prev) => [...prev, ...result.topics]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch fresh topics:", err);
+    } finally {
+      setIsLoading(false);
+      isFetchingRef.current = false;
+    }
+  };
+
+  // Background fetch effect: automatically refill when the queue drops low (<= 3 items)
+  useEffect(() => {
+    if (topics.length <= 3 && !isFetchingRef.current) {
+      fetchNextBatch(topics, currentTopic);
+    }
+  }, [topics.length]);
+
+  const getNextTopic = () => {
+    if (topics.length > 0) {
+      const next = topics[0];
+      setTopics(topics.slice(1));
+      setCurrentTopic(next);
+    } else {
+      // Queue is completely empty, try fetching immediately
+      fetchNextBatch(topics, currentTopic);
+    }
+  };
+
+  const handleStartRecording = () => {
+    if (onStartRecording) {
+      onStartRecording(currentTopic);
+    } else {
+      navigate("/recording", { state: { topic: currentTopic } });
+    }
+  };
+
+  function historyx() {
+    navigate("/history");
+  }
+  const toggleLanguage = (lang) => {
+    i18n.changeLanguage(lang);
   };
 
   return (
@@ -37,48 +126,49 @@ export default function Home({
           <MiniWaveform className="block mx-auto mb-6 text-[#8C2E3B]" />
 
           <h1 className="font-serif text-4xl sm:text-[2.75rem] leading-[1.05] text-[#241416] tracking-tight text-center">
-            Speaking
-          
-            Practice
+            {t("Speaking Practice"
+            )}
+
+
           </h1>
           <p className="mt-3 text-sm sm:text-base text-[#6B5F5C] text-center">
-            Build fluency through mindful practice.
+            {t("Build fluency through mindful practice.")}
           </p>
 
           {/* Topic Card */}
           <div className="mt-8 rounded-2xl bg-white/70 border border-[#E7DDD0] p-5 shadow-sm">
             <span className="text-[11px] font-semibold tracking-[0.14em] text-[#9B8F86] uppercase">
-              Topic Prompt
+              {t("Topic Prompt")}
             </span>
             <p className="mt-3 font-serif text-lg sm:text-xl leading-snug text-[#241416]">
-              {topic}
+              {currentTopic}
             </p>
-         <MiniWaveform className="block mx-auto mt-4 w-max text-[#D9B8BD]" dim />
+            <MiniWaveform className="block mx-auto mt-4 w-max text-[#D9B8BD]" dim />
 
           </div>
 
           {/* Surprise me */}
           <button
             type="button"
-            onClick={handleSurpriseMe}
+            onClick={getNextTopic} disabled={isLoading && topics.length === 0}
             className="mt-6 inline-flex items-center justify-center gap-2 self-stretch sm:self-center sm:px-8 rounded-full border border-[#E3B9BE] bg-[#FBEDEE] py-3 text-sm font-medium text-[#8C2E3B] transition-colors hover:bg-[#F6DFE1] active:scale-[0.98]"
           >
-            <Shuffle className="h-4 w-4" strokeWidth={2} />
-            Surprise me
+
+            {t("Select a topic to begin")}
           </button>
 
           {/* Start Recording */}
           <button
             type="button"
-            onClick={() => onStartRecording(topic)}
+            onClick={handleStartRecording}
             className="mt-3 inline-flex items-center justify-center gap-2 rounded-full bg-[#7A2331] py-3.5 text-sm font-semibold text-[#F6F1E7] shadow-sm transition-colors hover:bg-[#6A1E2A] active:scale-[0.98]"
           >
             <Play className="h-4 w-4 fill-current" strokeWidth={0} />
-            Start Recording
+            {t("Start Recording")}
           </button>
 
           <p className="mt-3 text-center text-xs text-[#9B8F86]">
-            Select a topic to begin
+            {t("Select a topic to begin")}
           </p>
         </div>
 
@@ -87,19 +177,19 @@ export default function Home({
           <div className="flex items-center justify-center gap-10">
             <button
               type="button"
-              onClick={onOpenHistory}
+              onClick={historyx}
               className="flex items-center gap-2 text-sm text-[#6B5F5C] transition-colors hover:text-[#241416]"
             >
               <History className="h-4 w-4" strokeWidth={1.75} />
-              History
+              {t("History")}
             </button>
             <button
               type="button"
-              onClick={onOpenSettings}
+              onClick={() => navigate("/settings")}
               className="flex items-center gap-2 text-sm text-[#6B5F5C] transition-colors hover:text-[#241416]"
             >
               <Settings className="h-4 w-4" strokeWidth={1.75} />
-              Settings
+              {t("Settings")}
             </button>
           </div>
         </nav>
@@ -123,3 +213,4 @@ function MiniWaveform({ className = "", dim = false }) {
     </div>
   );
 }
+

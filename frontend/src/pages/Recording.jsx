@@ -31,7 +31,7 @@ export default function Recording({
   const { t, i18n } = useTranslation();
 
   // RECEIVE THE FILE HERE
-  const handleStopRecording = async (duration, blob, url) => {
+  const handleStopRecording = async (duration, blob) => {
     setLoading(true);
     console.log("Recorded duration in seconds:", duration);
     console.log("Raw audio blob object:", blob);

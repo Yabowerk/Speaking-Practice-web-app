@@ -33,9 +33,9 @@ export default function Recording({
   // RECEIVE THE FILE HERE
   const handleStopRecording = async (duration, blob) => {
     setLoading(true);
-    console.log("Recorded duration in seconds:", duration);
+    /*console.log("Recorded duration in seconds:", duration);
     console.log("Raw audio blob object:", blob);
-    console.log("Playable URL:", url);
+    console.log("Playable URL:", url);*/
 
     setRecordingData({
       duration,
@@ -63,7 +63,7 @@ export default function Recording({
 
     if (response.ok) {
       const result = await response.json();
-      console.log(result);
+      //console.log(result);
       setServerdata(result);
       setLoading(false);
       navigate("/results");
@@ -105,7 +105,7 @@ export default function Recording({
       setIsRecording(true);
       setIsPaused(false);
     } catch (err) {
-      console.error("Microphone permission/access error:", err);
+      //console.error("Microphone permission/access error:", err);
       setError("Microphone access denied or unavailable. Please check permissions.");
       setIsRecording(false);
     }

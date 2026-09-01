@@ -61,7 +61,7 @@ export default function History() {
   const { t, i18n } = useTranslation();
   const url = import.meta.env.VITE_API_URL;
   useEffect(() => {
-    console.log(i18n.language);
+    //console.log(i18n.language);
   }, []);
 
   useEffect(() => {
@@ -87,7 +87,7 @@ export default function History() {
         }
 
         const rawSessions = await response.json();
-        console.log(rawSessions);
+        //console.log(rawSessions);
 
         // Parse and format sessions
         const formattedSessions = rawSessions.map(session => {
@@ -135,7 +135,7 @@ export default function History() {
         setRecentSessions(recent);
         setOlderSessions(older);
       } catch (err) {
-        console.error(err);
+        //console.error(err);
         setError("Could not load history");
       } finally {
         setLoading(false);

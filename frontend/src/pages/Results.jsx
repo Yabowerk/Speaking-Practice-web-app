@@ -68,7 +68,9 @@ export default function Results({
 
   const { serverdata, setServerdata } = useContext(AppContext);
   useEffect((
-  ) => { console.log(serverdata); },
+  ) => {// console.log(serverdata);
+
+  },
     []);
 
   const { t } = useTranslation();

@@ -72,13 +72,13 @@ export default function Home({
         body: JSON.stringify({ exclude }),
       });
       const result = await res.json();
-      console.log(result);
+      //console.log(result);
 
       if (result.topics?.length) {
         setTopics((prev) => [...prev, ...result.topics]);
       }
     } catch (err) {
-      console.error("Failed to fetch fresh topics:", err);
+      //console.error("Failed to fetch fresh topics:", err);
     } finally {
       setIsLoading(false);
       isFetchingRef.current = false;

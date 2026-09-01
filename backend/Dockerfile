@@ -13,6 +13,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
+
+ENV WHISPER_CUBLAS=0
+ENV CMAKE_ARGS="-DGGML_NATIVE=OFF -DGGML_AVX=OFF -DGGML_AVX2=OFF -DGGML_FMA=OFF -DGGML_F16C=OFF"
+
 RUN npm ci
 
 RUN ffmpeg -f lavfi -i anullsrc=r=16000:cl=mono -t 1 -y /tmp/warmup.wav && \

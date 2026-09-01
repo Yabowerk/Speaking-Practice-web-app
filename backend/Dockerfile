@@ -14,8 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY package*.json ./
 
-ENV WHISPER_CUBLAS=0
-ENV CMAKE_ARGS="-DGGML_NATIVE=OFF -DGGML_AVX=OFF -DGGML_AVX2=OFF -DGGML_FMA=OFF -DGGML_F16C=OFF"
+ENV NODEJS_WHISPER_CMAKE_ARGS="-DGGML_NATIVE=OFF"
 
 RUN npm ci
 

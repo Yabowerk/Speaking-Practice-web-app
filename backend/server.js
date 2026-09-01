@@ -301,7 +301,7 @@ app.post("/session/:lang", requireAuth, uploads.single("audio"), async (req, res
 
             const cleanText = getCleanText(rawTranscript);
             const durationinsecond = await getAudioDuration(outputPath);
-            const fillerList = ["eeeeee", "uh", "like", "you know", "so", "actually"];
+            const fillerList = ["እሽ", "ኧኧ...", "ማለት", "እ"];
             const result = analyzeSpeech(cleanText, durationinsecond, fillerList);
 
             const fileBuffer = fs.readFileSync(outputPath);

@@ -15,7 +15,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY package*.json ./
 RUN npm ci
 
-RUN node -e "require('nodejs-whisper').nodewhisper('./node_modules/nodejs-whisper/cpp/whisper.cpp/samples/jfk.wav', { modelName: 'base.en', autoDownloadModelName: 'base.en' }).then(() => console.log('Warm-up transcription complete')).catch((err) => { console.error(err); process.exit(1); })"
+RUN ffmpeg -f lavfi -i anullsrc=r=16000:cl=mono -t 1 -y /tmp/warmup.wav && \
+    node -e "require('nodejs-whisper').nodewhisper('./node_modules/nodejs-whisper/cpp/whisper.cpp/samples/jfk.wav', { modelName: 'base.en', autoDownloadModelName: 'base.en' }).then(() => console.log('Warm-up transcription complete')).catch((err) => { console.error(err); process.exit(1); })"
 
 
 COPY . .

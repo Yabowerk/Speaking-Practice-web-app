@@ -85,6 +85,33 @@ Guidelines:
     }
 }
 
+//fast english transcriber
+async function transcribeEnglishViaAPI(filePath) {
+    try {
+        console.log("transcription started used api");
+        const audioBuffer = fs.readFileSync(filePath);
+        const base64Audio = audioBuffer.toString('base64');
+
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: [
+                {
+                    inlineData: {
+                        mimeType: "audio/wav",
+                        data: base64Audio
+                    }
+                },
+                { text: "Transcribe this English audio verbatim. Return only the exact spoken text, no commentary." }
+            ]
+        });
+
+        return response.text || "";
+    } catch (error) {
+        console.error("English API Transcription Error:", error);
+        throw error;
+    }
+}
+
 // Amharic Transcriber
 async function transcribeAmharic(audioPath) {
     try {
@@ -374,11 +401,14 @@ app.post("/session/:lang", requireAuth, uploads.single("audio"), async (req, res
         try {
             const wavPath = await convertToWav(inputPath, outputPath);
             const absoluteWavPath = path.resolve(wavPath);
+            const TRANSCRIPTION_MODE = process.env.TRANSCRIPTION_MODE || "local";
 
-            const transcript = await nodewhisper(absoluteWavPath, {
-                modelName: "base.en",
-                autoDownloadModelName: "base.en",
-            });
+            const transcript = TRANSCRIPTION_MODE === "api"
+                ? await transcribeEnglishViaAPI(wavPath)
+                : await nodewhisper(absoluteWavPath, {
+                    modelName: "base.en",
+                    autoDownloadModelName: "base.en",
+                });
 
             const userSupabase = createClient(
                 process.env.SUPABASE_URL,

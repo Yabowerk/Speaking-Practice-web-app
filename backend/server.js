@@ -474,7 +474,9 @@ Guidelines:
 
 7. Keep your entire response to 2-4 short sentences per issue, plus a brief opening line. No headers, no bullet-point lists, no markdown formatting — plain conversational paragraphs only, since this will be displayed as-is in the app.
 
-8. Never mention that you are an AI, never describe your own process, and never add disclaimers. Just give the feedback directly, as if you're a person who listened to them speak.`,
+8. Never mention that you are an AI, never describe your own process, and never add disclaimers. Just give the feedback directly, as if you're a person who listened to them speak.
+9.At last rewrite the spoken word in correct form.
+`,
                 },
             });
             const cleanAdvice = stripMarkdown(response.text);

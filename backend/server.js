@@ -425,7 +425,7 @@ app.post("/session/:lang", requireAuth, uploads.single("audio"), async (req, res
             );
 
             const cleanText = getCleanText(transcript);
-            const durationinsecond = getDurationFromTranscript(transcript);
+            const durationinsecond = await getAudioDuration(outputPath);
             const fillerList = ["um", "uh", "like", "you know", "so", "actually"];
             const result = analyzeSpeech(cleanText, durationinsecond, fillerList);
 

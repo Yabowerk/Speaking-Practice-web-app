@@ -222,8 +222,8 @@ function PopulatedState({ serverdata, onNewSession }) {
           <span className="text-[10px] font-semibold tracking-[0.12em] text-[#8C2E3B] uppercase">
             {t("Tip")}
           </span>
-          <div >
-            <ReactMarkdown className="prose prose-sm max-w-none mt-1 text-[#5C1D28]"> {serverdata.ai || t("Nice work — keep practicing to smooth out your pacing.")}</ReactMarkdown>
+          <div className="prose prose-sm max-w-none mt-1 text-[#5C1D28]">
+            <ReactMarkdown>{serverdata.ai || t("Nice work — keep practicing to smooth out your pacing.")}</ReactMarkdown>
           </div>
         </div>
       </div>

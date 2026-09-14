@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 import { AudioPlayer } from "../Components/AudioPlayer";
 import { useTranslation } from "react-i18next";
-import ReactMarkdown from 'react-markdown';
 
 
 
@@ -36,28 +35,28 @@ const DEFAULT_RESULT = {
 
 const FILLER_WORDS = ["um", "uh", "like", "you know", "so", "actually"];
 
-// Component to handle AI feedback parsing and display
+// Component to handle structured AI feedback from backend
 function AIFeedbackSection({ aiResponse }) {
   const { t } = useTranslation();
   
-  // Parse AI response to separate feedback from natural way example
+  // Parse AI response - backend now returns JSON with {feedback: [], naturalWay: ""}
   const parseAIResponse = (response) => {
-    if (!response) return { feedback: "", naturalWay: "" };
+    if (!response) return { feedback: [], naturalWay: "" };
     
-    // Look for "Here is a natural way" or "Here is the natural way" pattern (case insensitive)
-    const naturalWayPattern = /here\s+is\s+(?:a\s+|the\s+)?natural\s+way/i;
-    const match = response.match(naturalWayPattern);
-    
-    if (match) {
-      const splitIndex = match.index;
-      const feedback = response.substring(0, splitIndex).trim();
-      const naturalWay = response.substring(splitIndex + match[0].length).trim();
-      
-      return { feedback, naturalWay };
+    try {
+      const parsed = JSON.parse(response);
+      return {
+        feedback: Array.isArray(parsed.feedback) ? parsed.feedback : [],
+        naturalWay: parsed.naturalWay || ""
+      };
+    } catch (e) {
+      // Fallback: if not JSON, treat as plain text feedback
+      console.warn("Failed to parse AI response as JSON:", e);
+      return { 
+        feedback: [response], 
+        naturalWay: "" 
+      };
     }
-    
-    // If no "natural way" section found, treat everything as feedback
-    return { feedback: response, naturalWay: "" };
   };
   
   const { feedback, naturalWay } = parseAIResponse(aiResponse);
@@ -65,16 +64,20 @@ function AIFeedbackSection({ aiResponse }) {
   return (
     <>
       {/* Feedback Section */}
-      <div className="mt-4 rounded-xl bg-[#FBEDEE] border border-[#E3B9BE] px-4 py-3">
-        <span className="text-[10px] font-semibold tracking-[0.12em] text-[#8C2E3B] uppercase">
-          {t("Feedback")}
-        </span>
-        <div className="mt-2 text-sm leading-relaxed text-[#5C1D28]">
-          <ReactMarkdown className="prose prose-sm max-w-none">
-            {feedback || t("Nice work — keep practicing to smooth out your pacing.")}
-          </ReactMarkdown>
+      {feedback.length > 0 && (
+        <div className="mt-4 rounded-xl bg-[#FBEDEE] border border-[#E3B9BE] px-4 py-3">
+          <span className="text-[10px] font-semibold tracking-[0.12em] text-[#8C2E3B] uppercase">
+            {t("Feedback")}
+          </span>
+          <div className="mt-3 space-y-2">
+            {feedback.map((item, idx) => (
+              <p key={idx} className="text-sm leading-relaxed text-[#5C1D28]">
+                {item}
+              </p>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Natural Way Section - Only show if naturalWay content exists */}
       {naturalWay && (
@@ -83,9 +86,21 @@ function AIFeedbackSection({ aiResponse }) {
             {t("Natural Way")}
           </span>
           <div className="mt-2 p-3 bg-white/50 rounded-lg border border-[#D1E5D1]">
-            <p className="text-sm leading-relaxed text-[#1A3A1A] font-medium italic">
-              "{naturalWay.replace(/^[.:\s]+/, '')}"
+            <p className="text-sm leading-relaxed text-[#1A3A1A] font-medium">
+              {naturalWay}
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Fallback message if no feedback and no natural way */}
+      {feedback.length === 0 && !naturalWay && (
+        <div className="mt-4 rounded-xl bg-[#FBEDEE] border border-[#E3B9BE] px-4 py-3">
+          <span className="text-[10px] font-semibold tracking-[0.12em] text-[#8C2E3B] uppercase">
+            {t("Feedback")}
+          </span>
+          <div className="mt-2 text-sm leading-relaxed text-[#5C1D28]">
+            {t("Nice work — keep practicing to smooth out your pacing.")}
           </div>
         </div>
       )}

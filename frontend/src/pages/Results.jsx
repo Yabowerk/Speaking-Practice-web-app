@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 import { AudioPlayer } from "../Components/AudioPlayer";
 import { useTranslation } from "react-i18next";
+import ReactMarkdown from 'react-markdown';
 
 
 
@@ -219,7 +220,7 @@ function PopulatedState({ serverdata, onNewSession }) {
         {/* Tip */}
         <div className="mt-4 rounded-xl bg-[#FBEDEE] border border-[#E3B9BE] px-4 py-3">
           <span className="text-[10px] font-semibold tracking-[0.12em] text-[#8C2E3B] uppercase">
-            {t("Tip")}
+            <ReactMarkdown> {t("Tip")}</ReactMarkdown>
           </span>
           <p className="mt-1 text-sm leading-relaxed text-[#5C1D28]">
             {serverdata.ai || t("Nice work — keep practicing to smooth out your pacing.")}

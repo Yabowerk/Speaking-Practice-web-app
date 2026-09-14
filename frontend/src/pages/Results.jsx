@@ -36,6 +36,63 @@ const DEFAULT_RESULT = {
 
 const FILLER_WORDS = ["um", "uh", "like", "you know", "so", "actually"];
 
+// Component to handle AI feedback parsing and display
+function AIFeedbackSection({ aiResponse }) {
+  const { t } = useTranslation();
+  
+  // Parse AI response to separate feedback from natural way example
+  const parseAIResponse = (response) => {
+    if (!response) return { feedback: "", naturalWay: "" };
+    
+    // Look for "Here is a natural way" or "Here is the natural way" pattern (case insensitive)
+    const naturalWayPattern = /here\s+is\s+(?:a\s+|the\s+)?natural\s+way/i;
+    const match = response.match(naturalWayPattern);
+    
+    if (match) {
+      const splitIndex = match.index;
+      const feedback = response.substring(0, splitIndex).trim();
+      const naturalWay = response.substring(splitIndex + match[0].length).trim();
+      
+      return { feedback, naturalWay };
+    }
+    
+    // If no "natural way" section found, treat everything as feedback
+    return { feedback: response, naturalWay: "" };
+  };
+  
+  const { feedback, naturalWay } = parseAIResponse(aiResponse);
+  
+  return (
+    <>
+      {/* Feedback Section */}
+      <div className="mt-4 rounded-xl bg-[#FBEDEE] border border-[#E3B9BE] px-4 py-3">
+        <span className="text-[10px] font-semibold tracking-[0.12em] text-[#8C2E3B] uppercase">
+          {t("Feedback")}
+        </span>
+        <div className="mt-2 text-sm leading-relaxed text-[#5C1D28]">
+          <ReactMarkdown className="prose prose-sm max-w-none">
+            {feedback || t("Nice work — keep practicing to smooth out your pacing.")}
+          </ReactMarkdown>
+        </div>
+      </div>
+
+      {/* Natural Way Section - Only show if naturalWay content exists */}
+      {naturalWay && (
+        <div className="mt-4 rounded-xl bg-[#EDF7ED] border border-[#C6E6C6] px-4 py-3">
+          <span className="text-[10px] font-semibold tracking-[0.12em] text-[#2D5A2D] uppercase">
+            {t("Natural Way")}
+          </span>
+          <div className="mt-2 p-3 bg-white/50 rounded-lg border border-[#D1E5D1]">
+            <p className="text-sm leading-relaxed text-[#1A3A1A] font-medium italic">
+              "{naturalWay.replace(/^[.:\s]+/, '')}"
+            </p>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 function buildTranscriptChunks(text) {
   if (!text) return [];
 
@@ -217,15 +274,8 @@ function PopulatedState({ serverdata, onNewSession }) {
           </p>
         </div>
 
-        {/* Tip */}
-        <div className="mt-4 rounded-xl bg-[#FBEDEE] border border-[#E3B9BE] px-4 py-3">
-          <span className="text-[10px] font-semibold tracking-[0.12em] text-[#8C2E3B] uppercase">
-            {t("Tip")}
-          </span>
-          <div className="prose prose-sm max-w-none mt-1 text-[#5C1D28]">
-            <ReactMarkdown>{serverdata.ai || t("Nice work — keep practicing to smooth out your pacing.")}</ReactMarkdown>
-          </div>
-        </div>
+        {/* AI Feedback Section */}
+        <AIFeedbackSection aiResponse={serverdata.ai || t("Nice work — keep practicing to smooth out your pacing.")} />
       </div>
 
       <button

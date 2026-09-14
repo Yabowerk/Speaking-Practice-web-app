@@ -55,21 +55,30 @@ async function amharicllm(userMessage) {
             messages: [
                 {
                     role: "system",
-                    content: `You are a supportive speaking coach reviewing a transcript from someone practicing spontaneous verbal articulation — thinking out loud fluently, not reciting prepared remarks. The transcript comes from real-time speech-to-text, so it will contain filler words (um, uh, like), run-on sentences, and informal phrasing that would be completely normal in spoken language but look rough in writing. Do not treat this as a written essay.
+                    content: `You are a supportive speaking coach reviewing a transcript from someone practicing spontaneous verbal articulation in Amharic. The transcript comes from real-time speech-to-text, so it will contain filler words, run-on sentences, and informal phrasing that would be completely normal in spoken language but look rough in writing.
 
-Your job is to identify grammar and phrasing issues that are worth the speaker's attention — genuine errors or awkward constructions that would help them communicate more clearly — not to sanitize their natural speaking voice into stiff, formal English.
+Your job is to identify grammar and phrasing issues that are worth the speaker's attention — genuine errors or awkward constructions that would help them communicate more clearly — not to sanitize their natural speaking voice.
 
 Guidelines:
+1. Focus only on grammar, word choice, and sentence clarity. Do not comment on filler words, speaking pace, or delivery.
+2. Ignore normal spoken-language patterns that are not actual errors.
+3. Only flag genuine issues: subject-verb agreement errors, incorrect word choice, confusing sentence structure.
+4. Surface at most 2-3 issues. If there are no real issues, say so plainly.
+5. For each issue: quote the specific phrase, explain briefly what's off, and suggest a clearer alternative.
+6. Write in a warm, encouraging tone — like a supportive friend.
+7. Never mention that you are an AI, never describe your own process.
 
-1. Focus only on grammar, word choice, and sentence clarity. Do not comment on filler words (um, uh, like), speaking pace, volume, or delivery — those are handled elsewhere and are not your concern.
-2. Ignore normal spoken-language patterns that are not actual errors: sentence fragments used for emphasis, starting sentences with "and" or "so," casual contractions, or trailing off and restarting a thought. These are natural in speech and should not be flagged.
-3. You will be given the topic prompt the speaker was responding to, along with their transcript. Use the topic only as context to understand what they were trying to say — do not comment on whether they stayed on topic, and do not mention the topic explicitly in your feedback.
-4. Only flag genuine issues: subject-verb agreement errors, incorrect word choice, confusing or tangled sentence structure, or grammar mistakes that would actually confuse a listener or reader.
-5. Surface at most 2-3 issues — the ones that would most improve clarity if fixed. If the transcript has no real issues worth mentioning, say so plainly and briefly; do not invent minor nitpicks just to have something to say.
-6. For each issue you raise: quote the specific phrase from the transcript, explain briefly what's off, and suggest a clearer alternative.
-7. Write in a warm, plain, encouraging tone — like a supportive friend, not a red-pen editor or a strict teacher. Never use grading language ("this is wrong," "you made an error"). Frame everything as a gentle suggestion, not a correction of a mistake.
-8. Keep your entire response to 2-4 short sentences per issue, plus a brief opening line. No headers, no bullet-point lists, no markdown formatting — plain conversational paragraphs only, since this will be displayed as-is in the app.
-9. Never mention that you are an AI, never describe your own process, and never add disclaimers. Just give the feedback directly, as if you're a person who listened to them speak.`
+CRITICAL: Return your response as valid JSON with exactly this structure:
+{
+  "feedback": [
+    "First suggestion with issue quoted and correction",
+    "Second suggestion with issue quoted and correction",
+    "Third suggestion if applicable"
+  ],
+  "naturalWay": "Rewrite the entire transcript in a natural, correct, fluent way as if they had spoken it perfectly."
+}
+
+Return ONLY valid JSON, no additional text.`
                 },
                 {
                     role: "user",
@@ -78,7 +87,18 @@ Guidelines:
             ]
         });
 
-        return res?.choices?.[0]?.message?.content || "";
+        let parsedResponse = { feedback: [], naturalWay: "" };
+        try {
+            parsedResponse = JSON.parse(res?.choices?.[0]?.message?.content || "{}");
+        } catch (e) {
+            console.error("Failed to parse Amharic AI JSON response:", e);
+            parsedResponse = { 
+                feedback: [res?.choices?.[0]?.message?.content || ""], 
+                naturalWay: "" 
+            };
+        }
+        
+        return JSON.stringify(parsedResponse);
     } catch (error) {
         console.error("Error from AddisAI:", error);
         throw error;
@@ -475,11 +495,35 @@ Guidelines:
 7. Keep your entire response to 2-4 short sentences per issue, plus a brief opening line. No headers, no bullet-point lists, no markdown formatting — plain conversational paragraphs only, since this will be displayed as-is in the app.
 
 8. Never mention that you are an AI, never describe your own process, and never add disclaimers. Just give the feedback directly, as if you're a person who listened to them speak.
-9.At last rewrite the spoken word in correct form.
+
+CRITICAL: Return your response as valid JSON with exactly this structure:
+{
+  "feedback": [
+    "First suggestion with issue quoted and correction",
+    "Second suggestion with issue quoted and correction",
+    "Third suggestion if applicable"
+  ],
+  "naturalWay": "Rewrite the entire transcript in a natural, correct, fluent way as if they had spoken it perfectly. This should be a complete, flowing version of what they tried to say."
+}
+
+Return ONLY valid JSON, no additional text.
 `,
                 },
             });
-            const cleanAdvice = stripMarkdown(response.text);
+            
+            // Parse AI response to extract structured feedback and natural way
+            let parsedResponse = { feedback: [], naturalWay: "" };
+            try {
+              parsedResponse = JSON.parse(response.text);
+            } catch (e) {
+              console.error("Failed to parse AI JSON response:", e);
+              parsedResponse = { 
+                feedback: [stripMarkdown(response.text)], 
+                naturalWay: "" 
+              };
+            }
+            
+            const cleanAdvice = JSON.stringify(parsedResponse);
 
             const { data: dbData, error: dbError } = await userSupabase
                 .from('sessions')

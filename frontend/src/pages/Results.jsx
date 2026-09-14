@@ -220,10 +220,10 @@ function PopulatedState({ serverdata, onNewSession }) {
         {/* Tip */}
         <div className="mt-4 rounded-xl bg-[#FBEDEE] border border-[#E3B9BE] px-4 py-3">
           <span className="text-[10px] font-semibold tracking-[0.12em] text-[#8C2E3B] uppercase">
-            <ReactMarkdown> {t("Tip")}</ReactMarkdown>
+            {t("Tip")}
           </span>
           <p className="mt-1 text-sm leading-relaxed text-[#5C1D28]">
-            {serverdata.ai || t("Nice work — keep practicing to smooth out your pacing.")}
+            <ReactMarkdown> {serverdata.ai || t("Nice work — keep practicing to smooth out your pacing.")}</ReactMarkdown>
           </p>
         </div>
       </div>

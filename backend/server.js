@@ -17,6 +17,7 @@ const { createClient } = require("@supabase/supabase-js");
 const { GoogleGenAI, Type } = require("@google/genai");
 const { AddisAI } = require("addisai");
 const WebSocket = require('ws');
+const { sessionLimiter, topicsLimiter } = require('./middleware/ratelimiter.js');
 
 const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY,
@@ -92,12 +93,12 @@ Return ONLY valid JSON, no additional text.`
             parsedResponse = JSON.parse(res?.choices?.[0]?.message?.content || "{}");
         } catch (e) {
             console.error("Failed to parse Amharic AI JSON response:", e);
-            parsedResponse = { 
-                feedback: [res?.choices?.[0]?.message?.content || ""], 
-                naturalWay: "" 
+            parsedResponse = {
+                feedback: [res?.choices?.[0]?.message?.content || ""],
+                naturalWay: ""
             };
         }
-        
+
         return JSON.stringify(parsedResponse);
     } catch (error) {
         console.error("Error from AddisAI:", error);
@@ -252,7 +253,7 @@ app.get("/sessions/:lang", requireAuth, async (req, res) => {
     }
 });
 
-app.post("/api/:lang/topics", requireAuth, async (req, res) => {
+app.post("/api/:lang/topics", requireAuth, topicsLimiter, async (req, res) => {
     const { lang } = req.params;
 
     if (lang === "am") {
@@ -316,7 +317,7 @@ app.post("/api/:lang/topics", requireAuth, async (req, res) => {
     }
 });
 
-app.post("/session/:lang", requireAuth, uploads.single("audio"), async (req, res) => {
+app.post("/session/:lang", requireAuth, sessionLimiter, uploads.single("audio"), async (req, res) => {
     const { lang } = req.params;
     if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
@@ -510,19 +511,19 @@ Return ONLY valid JSON, no additional text.
 `,
                 },
             });
-            
+
             // Parse AI response to extract structured feedback and natural way
             let parsedResponse = { feedback: [], naturalWay: "" };
             try {
-              parsedResponse = JSON.parse(response.text);
+                parsedResponse = JSON.parse(response.text);
             } catch (e) {
-              console.error("Failed to parse AI JSON response:", e);
-              parsedResponse = { 
-                feedback: [stripMarkdown(response.text)], 
-                naturalWay: "" 
-              };
+                console.error("Failed to parse AI JSON response:", e);
+                parsedResponse = {
+                    feedback: [stripMarkdown(response.text)],
+                    naturalWay: ""
+                };
             }
-            
+
             const cleanAdvice = JSON.stringify(parsedResponse);
 
             const { data: dbData, error: dbError } = await userSupabase

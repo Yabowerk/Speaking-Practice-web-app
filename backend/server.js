@@ -87,13 +87,22 @@ Return ONLY valid JSON — no markdown formatting, no code blocks, no extra text
             ]
         });
 
+        const rawContent = res?.choices?.[0]?.message?.content || "{}";
+
+        // Strip ```json / ``` fences (and any leading/trailing whitespace) before parsing
+        const cleaned = rawContent
+            .trim()
+            .replace(/^```(?:json)?\s*/i, "")
+            .replace(/```\s*$/i, "")
+            .trim();
+
         let parsedResponse = { feedback: [], naturalWay: "" };
         try {
-            parsedResponse = JSON.parse(res?.choices?.[0]?.message?.content || "{}");
+            parsedResponse = JSON.parse(cleaned);
         } catch (e) {
-            console.error("Failed to parse Amharic AI JSON response:", e);
+            console.error("Failed to parse Amharic AI JSON response:", e, "Raw content:", rawContent);
             parsedResponse = {
-                feedback: [res?.choices?.[0]?.message?.content || ""],
+                feedback: [rawContent],
                 naturalWay: ""
             };
         }

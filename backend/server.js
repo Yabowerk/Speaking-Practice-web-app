@@ -78,7 +78,7 @@ CRITICAL: Return your response as valid JSON with exactly this structure:
   ],
   "naturalWay": "Rewrite the entire transcript in a natural, correct, fluent way as if they had spoken it perfectly."
 }
-
+NEVER return JSON, objects, arrays, or any structured data format. Do not use field names like "feedback" or "naturalWay". Write your entire response as plain, flowing Amharic sentences only — as if you are speaking directly to the person, not filling out a form.
 Return ONLY valid JSON, no additional text.`
                 },
                 {

@@ -88,6 +88,7 @@ Return ONLY valid JSON — no markdown formatting, no code blocks, no extra text
         });
 
         const rawContent = res?.choices?.[0]?.message?.content || "{}";
+        console.log(rawContent);
 
         // Strip ```json / ``` fences (and any leading/trailing whitespace) before parsing
         const cleaned = rawContent
@@ -106,7 +107,7 @@ Return ONLY valid JSON — no markdown formatting, no code blocks, no extra text
                 naturalWay: ""
             };
         }
-
+        console.log(parsedResponse);
         return JSON.stringify(parsedResponse);
     } catch (error) {
         console.error("Error from AddisAI:", error);

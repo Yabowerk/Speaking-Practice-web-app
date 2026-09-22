@@ -19,8 +19,9 @@ export default function Home({
   const navigate = useNavigate();
   const url = import.meta.env.VITE_API_URL;
   const { t, i18n } = useTranslation();
+
   const [topics, setTopics] = useState(() => {
-    const saved = localStorage.getItem("practice_topics");
+    const saved = localStorage.getItem(`practice_topics_${i18n.language}`);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -33,7 +34,7 @@ export default function Home({
   });
 
   const [currentTopic, setCurrentTopic] = useState(() => {
-    const savedCurrent = localStorage.getItem("current_topic");
+    const savedCurrent = localStorage.getItem(`current_topic_${i18n.language}`);
     return savedCurrent || FALLBACK_TOPICS[0];
   });
 
@@ -41,12 +42,28 @@ export default function Home({
   const isFetchingRef = useRef(false); // guards against duplicate fetches
 
   useEffect(() => {
-    localStorage.setItem("practice_topics", JSON.stringify(topics));
-  }, [topics]);
+    localStorage.setItem(`practice_topics_${i18n.language}`, JSON.stringify(topics));
+  }, [topics, i18n.language]);
 
   useEffect(() => {
-    localStorage.setItem("current_topic", currentTopic);
-  }, [currentTopic]);
+    localStorage.setItem(`current_topic_${i18n.language}`, currentTopic);
+  }, [currentTopic, i18n.language]);
+
+  useEffect(() => {
+    const savedTopics = localStorage.getItem(`practice_topics_${i18n.language}`);
+    const savedCurrent = localStorage.getItem(`current_topic_${i18n.language}`);
+
+    let langTopics = [];
+    if (savedTopics) {
+      try {
+        const parsed = JSON.parse(savedTopics);
+        if (Array.isArray(parsed)) langTopics = parsed;
+      } catch (e) { }
+    }
+
+    setTopics(langTopics);
+    setCurrentTopic(savedCurrent || langTopics[0] || "");
+  }, [i18n.language]);
 
   const fetchNextBatch = async (currentTopicsList = topics, currentActiveTopic = currentTopic) => {
     if (isFetchingRef.current) return; // already fetching, skip
@@ -76,6 +93,9 @@ export default function Home({
 
       if (result.topics?.length) {
         setTopics((prev) => [...prev, ...result.topics]);
+        if (!currentActiveTopic) {
+          setCurrentTopic(result.topics[0]);
+        }
       }
     } catch (err) {
       //console.error("Failed to fetch fresh topics:", err);

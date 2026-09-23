@@ -7,8 +7,8 @@ import { useTranslation } from "react-i18next";
 
 const FALLBACK_TOPICS = [
   "Describe a decision you made recently that changed your perspective.",
-  "Talk about a challenge you faced while learning or building something, and how you got through it.",
   "Explain a complex topic you understand well to a beginner.",
+  "Talk about a challenge you faced while learning or building something, and how you got through it.",
   "What is a personal habit you want to build this year and why?",
 ];
 
